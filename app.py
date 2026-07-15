@@ -131,6 +131,17 @@ if st.sidebar.button("Run Quantitative Optimization"):
             label="Benchmark Final Value", 
             value=f"${benchmark_cumulative[-1]:,.2f}"
         )
+        # --- NEW: Under the Hood Explanation ---
+        st.divider()
+        with st.expander("⚙️ Under the Hood: How this Engine Works"):
+            st.markdown("""
+            This application is powered by a custom Object-Oriented Python backend (`quant_engine.py`) that executes the following algorithmic sequence:
+            
+            1. **Data Ingestion:** Fetches historical daily adjusted close prices via the `yfinance` API.
+            2. **Monte Carlo Simulation (Training):** Generates thousands of random portfolio weight arrays using `NumPy`. It utilizes Rejection Sampling to discard any arrays that violate the maximum asset concentration limit.
+            3. **Mathematical Optimization:** Calculates the annualized expected return and covariance matrix to find the exact weight distribution that maximizes the **Sharpe Ratio** (Return / Risk).
+            4. **Forward Validation (Testing):** Locks in the optimized weights and matrix-multiplies them against unseen, out-of-sample data, dynamically tracking cumulative returns against a baseline 1/N equal-weight benchmark.
+            """)
         # --- NEW: Educational Breakdown ---
         st.divider()
         with st.expander("📚 Why does the Optimized Strategy sometimes lose to the Benchmark?"):
