@@ -14,6 +14,11 @@ $$\text{Sharpe Ratio} = \frac{R_p - R_f}{\sigma_p}$$
 ### 2. Overcoming Look-Ahead Bias (The Graph Behavior)
 A common pitfall in financial modeling is "Look-Ahead Bias"—optimizing an algorithm on a specific timeframe and then testing it on that exact same data, which falsely inflates performance. 
 
+### 3. Risk Management & Concentration Limits
+Unconstrained optimization models frequently suffer from **Concentration Risk**, where the algorithm dumps the majority of capital into a single historically high-performing asset, destroying true diversification. 
+
+To counteract this, the engine's Monte Carlo simulator utilizes **Rejection Sampling**. It strictly enforces a customizable maximum weight constraint (e.g., no single asset can exceed 40% of the portfolio). Any mathematically generated array that breaches this risk threshold is algorithmically discarded and redrawn, ensuring the final efficient frontier represents realistic, well-diversified portfolios.
+
 To ensure mathematical integrity, this engine uses a strict **Train/Test Split**:
 * **The Training Phase (The Past):** The engine calculates the historical covariance matrix and expected returns to find the mathematically perfect weights.
 * **The Testing Phase (The Future):** Those weights are locked in and aggressively tested against unseen future market data. 
