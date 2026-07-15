@@ -1,6 +1,7 @@
 # 📈 Quantitative Portfolio Engine & Risk Optimizer
 
-An end-to-end algorithmic portfolio optimization engine built with Python, simulating historical market data to construct the mathematically optimal asset allocation based on the Markowitz Efficient Frontier. 
+Firstly, An end-to-end algorithmic portfolio optimization engine built with Python, simulating historical market data to construct the mathematically optimal asset allocation based on the Markowitz Efficient Frontier. 
+And the Second part, running Monte Carlo Simulation on the test result from the optimization engine to simulate and get probability graph of portfolio amount after 30 days, mentioning VaR (Value at Risk) and the expected amount. 
 
 ## 🧮 The Mathematics & Methodology
 
@@ -24,6 +25,17 @@ To ensure mathematical integrity, this engine uses a strict **Train/Test Split**
 * **The Testing Phase (The Future):** Those weights are locked in and aggressively tested against unseen future market data. 
 
 **Why the Graph Behaves This Way:** Because the algorithm is operating on out-of-sample data, you will see realistic variance. It will not perfectly predict future market shocks, but the optimized strategy is mathematically designed to experience less severe drawdowns (lower volatility) and a higher risk-adjusted return over time compared to a standard equal-weight benchmark.
+
+### 4. Predictive Stress Testing & Value at Risk (VaR)
+Beyond historical backtesting, this engine includes a **30-Day Forward-Looking Monte Carlo Stress Test** to simulate future out-of-sample realities.
+
+#### The Mathematics of the Simulation
+Instead of predicting a single future price, the engine executes a stochastic Monte Carlo simulation to draw 10,000 statistically probable future asset paths.
+* **Stochastic Path Generation:** It correlates the random walks across assets using the **Cholesky Decomposition** ($L \cdot L^T = \Sigma$) of the portfolio's historical covariance matrix. This ensures structural market relationships and cross-asset correlations remain mathematically intact during the simulation.
+* **Fat-Tail Modeling:** Standard financial models assume normal distributions (bell curves), which notoriously underestimate real-world market crashes. This engine deliberately utilizes a **Multivariate Student’s t-distribution** (with 10 degrees of freedom). This mathematical choice explicitly models "fat tails," ensuring black-swan events and extreme outliers are accurately represented.
+
+#### Downside Risk Projection
+* **Value at Risk (VaR):** By sorting the 10,000 simulated outcomes, the algorithm empirically isolates the 5th percentile. This produces a strict 95% confidence VaR threshold, answering exactly how much capital is at risk of loss in a severe macroeconomic drawdown over the next month.
 
 ## 📉 The Out-of-Sample Phenomenon: Optimization vs. Equal Weight
 A core feature of this engine is its strict separation of in-sample training and out-of-sample testing. Users will frequently observe the Optimized Strategy underperforming the Equal-Weight Benchmark during the forward-testing phase. This accurately reflects a well-documented phenomenon in quantitative finance:
