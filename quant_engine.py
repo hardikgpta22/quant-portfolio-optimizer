@@ -29,15 +29,21 @@ class QuantitativeEngine:
 
         # To ensure reproducible results
         np.random.seed(4)
+        max_weight=0.40
 
-        for x in range(num_portfolios):
-            weights = np.array(np.random.random(len(self.tickers)))
-            weights = weights / np.sum(weights)
-            all_weights[x, :] = weights
-
-            ret_arr[x] = np.sum((self.mean_returns * weights) * 252)
-            vol_arr[x] = np.sqrt(np.dot(weights.T, np.dot(self.cov_matrix, weights))) * np.sqrt(252)
-            sharpe_arr[x] = (ret_arr[x] - risk_free_rate) / vol_arr[x]
+        for i in range(num_portfolios):
+            valid_weights = False
+            while not valid_weights:            # for max weight optimization
+                weights = np.random.random(len(self.tickers))
+                weights /= np.sum(weights)
+                
+                if not np.any(weights > max_weight):
+                    valid_weights = True 
+            
+            all_weights[i, :] = weights
+            ret_arr[i] = np.sum(self.mean_returns * weights) * 252
+            vol_arr[i] = np.sqrt(np.dot(weights.T, np.dot(self.cov_matrix, weights))) * np.sqrt(252)
+            sharpe_arr[i] = ret_arr[i] / vol_arr[i]
 
         max_sharpe_idx = sharpe_arr.argmax()
         self.optimal_weights = all_weights[max_sharpe_idx, :]
