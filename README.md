@@ -25,6 +25,13 @@ To ensure mathematical integrity, this engine uses a strict **Train/Test Split**
 
 **Why the Graph Behaves This Way:** Because the algorithm is operating on out-of-sample data, you will see realistic variance. It will not perfectly predict future market shocks, but the optimized strategy is mathematically designed to experience less severe drawdowns (lower volatility) and a higher risk-adjusted return over time compared to a standard equal-weight benchmark.
 
+## 📉 The Out-of-Sample Phenomenon: Optimization vs. Equal Weight
+A core feature of this engine is its strict separation of in-sample training and out-of-sample testing. Users will frequently observe the Optimized Strategy underperforming the Equal-Weight Benchmark during the forward-testing phase. This accurately reflects a well-documented phenomenon in quantitative finance:
+
+1. **Estimation Error Maximization:** Markowitz optimization relies heavily on the historical covariance matrix and mean returns. Small fluctuations in historical data lead to massive changes in the optimal weights, causing the algorithm to over-allocate to historical anomalies.
+2. **The 1/N Advantage:** An equal-weight benchmark (1/N) carries zero estimation error because it relies on no historical parameters. In highly volatile, unpredictable market regimes, this "naive" diversification mathematically provides more robust out-of-sample performance than curve-fit historical optimizations. 
+3. **Overfitting Detection:** By displaying this performance gap, the engine successfully identifies and visualizes algorithmic overfitting, proving that historical mean-variance dominance does not guarantee future outperformance.
+
 ## 🚀 Features
 * **Modern Portfolio Theory (MPT):** Calculates the optimal Sharpe Ratio via 5,000+ simulated weight allocations.
 * **Out-of-Sample Backtesting:** Eliminates look-ahead bias by splitting historical data into training (optimization) and testing (forward-validation) periods to accurately gauge real-world performance.

@@ -131,3 +131,16 @@ if st.sidebar.button("Run Quantitative Optimization"):
             label="Benchmark Final Value", 
             value=f"${benchmark_cumulative[-1]:,.2f}"
         )
+        # --- NEW: Educational Breakdown ---
+        st.divider()
+        with st.expander("📚 Why does the Optimized Strategy sometimes lose to the Benchmark?"):
+            st.markdown("""
+            **The Out-of-Sample Reality (Estimation Error)**
+            
+            In quantitative finance, it is incredibly common for a mathematically "perfect" optimized portfolio to underperform a naive equal-weight benchmark in out-of-sample testing. This happens due to two primary factors:
+            
+            * **Estimation Error:** Mean-variance optimization requires estimating future returns and volatility based purely on historical data. The optimizer acts as an "error maximizer," heavily weighting assets that had a lucky historical run and heavily penalizing assets that had a temporary dip. 
+            * **The Robustness of Equal Weighting:** The equal-weight benchmark (1/N) makes absolutely zero assumptions about the future. Because it does not rely on historical data, it suffers from zero estimation error, making it statistically highly robust to sudden market regime shifts.
+            
+            **The Takeaway:** If an algorithm crushes the market during the training phase but lags behind the benchmark during the testing phase, it proves the model *overfit* to the past rather than learning a persistent future pattern.
+            """)
