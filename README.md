@@ -1,9 +1,9 @@
-# 📈 Quantitative Portfolio Engine & Risk Optimizer
+# Quantitative Portfolio Engine & Risk Optimizer
 
 Firstly, An end-to-end algorithmic portfolio optimization engine built with Python, simulating historical market data to construct the mathematically optimal asset allocation based on the Markowitz Efficient Frontier. 
 And the Second part, running Monte Carlo Simulation on the test result from the optimization engine to simulate and get probability graph of portfolio amount after 30 days, mentioning VaR (Value at Risk) and the expected amount. 
 
-## 🧮 The Mathematics & Methodology
+## The Mathematics & Methodology
 
 ### 1. Modern Portfolio Theory (MPT)
 The optimization engine is built on Harry Markowitz's Modern Portfolio Theory. The algorithm generates thousands of random weight distributions to plot the **Efficient Frontier**, seeking the exact asset allocation that maximizes expected return for a given level of risk. 
@@ -37,20 +37,20 @@ Instead of predicting a single future price, the engine executes a stochastic Mo
 #### Downside Risk Projection
 * **Value at Risk (VaR):** By sorting the 10,000 simulated outcomes, the algorithm empirically isolates the 5th percentile. This produces a strict 95% confidence VaR threshold, answering exactly how much capital is at risk of loss in a severe macroeconomic drawdown over the next month.
 
-## 📉 The Out-of-Sample Phenomenon: Optimization vs. Equal Weight
+## The Out-of-Sample Phenomenon: Optimization vs. Equal Weight
 A core feature of this engine is its strict separation of in-sample training and out-of-sample testing. Users will frequently observe the Optimized Strategy underperforming the Equal-Weight Benchmark during the forward-testing phase. This accurately reflects a well-documented phenomenon in quantitative finance:
 
 1. **Estimation Error Maximization:** Markowitz optimization relies heavily on the historical covariance matrix and mean returns. Small fluctuations in historical data lead to massive changes in the optimal weights, causing the algorithm to over-allocate to historical anomalies.
 2. **The 1/N Advantage:** An equal-weight benchmark (1/N) carries zero estimation error because it relies on no historical parameters. In highly volatile, unpredictable market regimes, this "naive" diversification mathematically provides more robust out-of-sample performance than curve-fit historical optimizations. 
 3. **Overfitting Detection:** By displaying this performance gap, the engine successfully identifies and visualizes algorithmic overfitting, proving that historical mean-variance dominance does not guarantee future outperformance.
 
-## 🚀 Features
+## Features
 * **Modern Portfolio Theory (MPT):** Calculates the optimal Sharpe Ratio via 5,000+ simulated weight allocations.
 * **Out-of-Sample Backtesting:** Eliminates look-ahead bias by splitting historical data into training (optimization) and testing (forward-validation) periods to accurately gauge real-world performance.
 * **Performance Analytics:** Compares optimized strategy returns against an equal-weight benchmark, calculating expected volatility vs. actual cash returns.
 * **Live Interactive Web App:** A fully dynamic Streamlit frontend allowing custom stock ticker inputs, investment sizing, and dynamic timeline adjustments.
 
-## 🛠️ Technology Stack
+##  Technology Stack
 * **Backend:** Python (OOP Architecture)
 * **Quantitative Math:** NumPy, SciPy 
 * **Data Engineering:** Pandas, yFinance
