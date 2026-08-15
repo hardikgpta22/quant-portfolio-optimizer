@@ -12,7 +12,7 @@ st.markdown("Enter your preferred stock tickers to mathematically calculate the 
 # --- 2. Dynamic User Inputs (Sidebar) ---
 st.sidebar.header("Engine Parameters")
 
-with st.sidebar.expander("📚 Common Ticker Reference"):
+with st.sidebar.expander("Common Ticker Reference"):
     st.markdown("""
     **Technology**
     * **AAPL:** Apple
@@ -52,7 +52,7 @@ investment = st.sidebar.number_input("Initial Investment ($)", value=10000, step
 if st.sidebar.button("Run Quantitative Optimization"):
     
     # Create our two clean navigation tabs
-    tab1, tab2 = st.tabs(["📊 Backtesting & Performance", "🔮 30-Day Forward Prediction"])
+    tab1, tab2 = st.tabs(["Backtesting & Performance", "30-Day Forward Prediction"])
     
     # ==========================================
     # TAB 1: THE PAST (Historical Backtesting)
@@ -129,7 +129,7 @@ if st.sidebar.button("Run Quantitative Optimization"):
 
             # --- Disclaimers ---
             st.divider()
-            with st.expander("⚙️How this Engine Works"):
+            with st.expander("How this Engine Works"):
                 st.markdown("""
                 This application is powered by a custom Python backend (`quant_engine.py`) that executes the following algorithmic sequence:
                 1. **Data Ingestion:** Fetches historical daily adjusted close prices via the `yfinance` API.
@@ -138,7 +138,7 @@ if st.sidebar.button("Run Quantitative Optimization"):
                 4. **Forward Validation (Testing):** Locks in the optimized weights and matrix-multiplies them against unseen, out-of-sample data, dynamically tracking cumulative returns against a baseline 1/N equal-weight benchmark.
                 """)
 
-            with st.expander("📚 Why does the Optimized Strategy sometimes lose to the Benchmark?"):
+            with st.expander("Why does the Optimized Strategy sometimes lose to the Benchmark?"):
                 st.markdown("""
                 **The Out-of-Sample Reality (Estimation Error)**
                 In quantitative finance, it is incredibly common for a mathematically "perfect" optimized portfolio to underperform a naive equal-weight benchmark in out-of-sample testing. This happens due to two primary factors:
@@ -195,7 +195,7 @@ if st.sidebar.button("Run Quantitative Optimization"):
             v3.metric("30-Day Value at Risk (VaR)", f"${var_95_dollars:,.2f}", delta="Maximum Expected Loss", delta_color="inverse")
             # --- NEW: Monte Carlo Graph Explanation ---
             st.divider()
-            with st.expander("🔬 Understanding the Stress Test & VaR Graph"):
+            with st.expander("Understanding the Stress Test & VaR Graph"):
                 st.markdown("""
                 ### Decoding the 30-Day Future Projection
                 This distribution graph visualizes a **Monte Carlo Simulation**, plotting 10,000 statistically probable future realities for your newly optimized portfolio.
