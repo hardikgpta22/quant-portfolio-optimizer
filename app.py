@@ -158,7 +158,8 @@ if st.sidebar.button("Run Quantitative Optimization"):
         with st.spinner('Simulating 10,000 random market walks (Fat-Tail Distribution)...'):
             
             # Using your existing backend function, starting from the final cash amount of Phase 2!
-            sim_results, var_95_dollars = test_engine.run_monte_carlo(
+            # We use `_` to safely ignore the new CVaR value for now without breaking the app
+            sim_results, var_95_dollars, _ = test_engine.run_monte_carlo(
                 weights=optimal_weights, 
                 time_horizon=30, 
                 initial_investment=algo_cumulative[-1],
