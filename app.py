@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from quant_engine import QuantitativeEngine 
+import matplotlib.dates as mdates
 
 # --- 1. UI Setup & Header ---
 st.set_page_config(page_title="Quant Portfolio Optimizer", layout="wide")
