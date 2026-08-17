@@ -2,7 +2,9 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from quant_engine import QuantitativeEngine 
+from backtest import Backtester
 import matplotlib.dates as mdates
 
 # --- 1. UI Setup & Header ---
@@ -52,8 +54,8 @@ investment = st.sidebar.number_input("Initial Investment ($)", value=10000, step
 # --- 3. Execution ---
 if st.sidebar.button("Run Quantitative Optimization"):
     
-    # Create our two clean navigation tabs
-    tab1, tab2 = st.tabs(["Backtesting & Performance", "30-Day Forward Prediction"])
+    # Create our three clean navigation tabs
+    tab1, tab2, tab3 = st.tabs(["Backtesting & Performance", "30-Day Forward Prediction", "Walk-Forward Optimization"])
     
     # ==========================================
     # TAB 1: THE PAST (Historical Backtesting)
@@ -90,14 +92,12 @@ if st.sidebar.button("Run Quantitative Optimization"):
             benchmark_daily_returns = np.dot(test_returns, benchmark_weights)
             benchmark_cumulative = investment * np.cumprod(1 + benchmark_daily_returns)
             
-            # Plotting the Comparison
-            fig, ax = plt.subplots(figsize=(10, 5))
-            ax.plot(test_returns.index, algo_cumulative, label='Optimized Strategy', color='forestgreen', linewidth=2)
-            ax.plot(test_returns.index, benchmark_cumulative, label=f'Equal Weight Benchmark ({even_split:.1%})', color='gray', linestyle='dashed', linewidth=2)
-            ax.set_ylabel('Portfolio Value ($)')
-            ax.legend()
-            ax.grid(True, alpha=0.3)
-            st.pyplot(fig)
+            # Plotting the Comparison with Plotly
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=test_returns.index, y=algo_cumulative, mode='lines', name='Optimized Strategy', line=dict(color='forestgreen', width=2)))
+            fig.add_trace(go.Scatter(x=test_returns.index, y=benchmark_cumulative, mode='lines', name=f'Equal Weight Benchmark ({even_split:.1%})', line=dict(color='gray', width=2, dash='dash')))
+            fig.update_layout(title="Out-of-Sample Performance", yaxis_title='Portfolio Value ($)', hovermode="x unified", template="plotly_dark", margin=dict(l=0, r=0, t=30, b=0))
+            st.plotly_chart(fig, use_container_width=True)
             
             # --- Advanced Performance Metrics ---
             st.divider()
@@ -158,8 +158,7 @@ if st.sidebar.button("Run Quantitative Optimization"):
         with st.spinner('Simulating 10,000 random market walks (Fat-Tail Distribution)...'):
             
             # Using your existing backend function, starting from the final cash amount of Phase 2!
-            # We use `_` to safely ignore the new CVaR value for now without breaking the app
-            sim_results, var_95_dollars, _ = test_engine.run_monte_carlo(
+            sim_results, var_95_dollars, cvar_95_dollars = test_engine.run_monte_carlo(
                 weights=optimal_weights, 
                 time_horizon=30, 
                 initial_investment=algo_cumulative[-1],
@@ -167,34 +166,32 @@ if st.sidebar.button("Run Quantitative Optimization"):
             )
             
             # --- Plotting the Simulation Distribution (Cash Value) ---
-            fig2, ax2 = plt.subplots(figsize=(10, 4))
-            counts, bins, patches = ax2.hist(sim_results, bins=60, alpha=0.6, color='darkseagreen', edgecolor='white')
-            
-            # The 5th percentile cutoff in cash
             cutoff = np.percentile(sim_results, 5)
             
-            # Color the worst 5% of outcomes (downside risk zone) in deep red
-            for patch, left, right in zip(patches, bins[:-1], bins[1:]):
-                if left < cutoff:
-                    patch.set_facecolor('indianred')
+            fig2 = go.Figure()
+            # Main histogram
+            fig2.add_trace(go.Histogram(x=sim_results, nbinsx=60, marker_color='darkseagreen', opacity=0.6, name='Simulated Outcomes'))
+            # Tail histogram overlay
+            tail_results = sim_results[sim_results < cutoff]
+            fig2.add_trace(go.Histogram(x=tail_results, nbinsx=60, marker_color='indianred', opacity=0.9, name='5% Worst Cases'))
             
-            ax2.axvline(cutoff, color='red', linestyle='dashed', linewidth=2, label=f'95% VaR Threshold (${cutoff:,.2f})')
-            ax2.axvline(algo_cumulative[-1], color='black', linestyle='dotted', linewidth=1, label=f'Starting Investment Value (${algo_cumulative[-1]:,.2f})')
-            ax2.set_xlabel('Simulated Final Portfolio Value ($)')
-            ax2.set_ylabel('Number of Scenarios')
-            ax2.legend()
-            st.pyplot(fig2)
+            fig2.add_vline(x=cutoff, line_dash="dash", line_color="red", annotation_text=f"95% VaR: ${cutoff:,.2f}")
+            fig2.add_vline(x=algo_cumulative[-1], line_dash="dot", line_color="white", annotation_text=f"Starting Value: ${algo_cumulative[-1]:,.2f}")
+            
+            fig2.update_layout(barmode='overlay', title="Monte Carlo 30-Day Stress Test", xaxis_title="Simulated Final Portfolio Value ($)", yaxis_title="Number of Scenarios", template="plotly_dark", showlegend=False, margin=dict(l=0, r=0, t=40, b=0))
+            st.plotly_chart(fig2, use_container_width=True)
             
             # --- Metrics Dashboard ---
             st.divider()
-            v1, v2, v3 = st.columns(3)
+            v1, v2, v3, v4 = st.columns(4)
             
             expected_final_value = np.mean(sim_results)
             prob_positive = np.mean(sim_results > algo_cumulative[-1])
             
             v1.metric("Average Simulated Value", f"${expected_final_value:,.2f}", f"${(expected_final_value - algo_cumulative[-1]):,.2f} Expected Profit")
             v2.metric("Probability of Profit", f"{prob_positive:.1%}", help="Percentage of simulated paths that finished above your starting value.")
-            v3.metric("30-Day Value at Risk (VaR)", f"${var_95_dollars:,.2f}", delta="Maximum Expected Loss", delta_color="inverse")
+            v3.metric("30-Day Value at Risk (VaR)", f"${var_95_dollars:,.2f}", delta="Max expected loss (95% conf)", delta_color="inverse")
+            v4.metric("30-Day CVaR", f"${cvar_95_dollars:,.2f}", delta="Avg loss in worst 5%", delta_color="inverse")
             # --- NEW: Monte Carlo Graph Explanation ---
             st.divider()
             with st.expander("Understanding the Stress Test & VaR Graph"):
@@ -206,3 +203,65 @@ if st.sidebar.button("Run Quantitative Optimization"):
                 * **Graph Distribution:** The distribution of future outcomes is represented by the histogram. We assumed a fat-tail distribution, which means the tail of the distribution is especially volatile. (instead f a normal distribution, the tail would be flat)
                 * **Limitations of this simulation:** The simulation is **not guaranteed** to accurately predict the market's future behavior. One of the reason is that this assumes that the probability of getting a high return is same as the probability of stock crashing. In practice, this is **not really the case**, and the simulation is **not perfect**. 
                 """)
+
+    # ==========================================
+    # TAB 3: WALK-FORWARD OPTIMIZATION
+    # ==========================================
+    with tab3:
+        st.header("Rigorous Walk-Forward Backtesting")
+        st.markdown("Unlike a single train/test split, this model continually rolls forward, retraining on a sliding window of data and testing on the subsequent unseen window. This prevents overfitting and simulates a true live-trading environment.")
+        
+        with st.status("Executing Walk-Forward Engine...", expanded=True) as status:
+            st.write("Fetching historical market DNA...")
+            # We initialize a new engine spanning the entire requested timeline
+            wfo_engine = QuantitativeEngine(tickers=tickers, start_date=start_date, end_date=end_date)
+            
+            st.write("Initializing Backtester module...")
+            backtester = Backtester(wfo_engine)
+            
+            st.write(f"Running rolling optimizations (Train: 252 days, Test: 63 days)...")
+            wfo_results = backtester.walk_forward_optimize(initial_investment=investment, train_window_size=252, test_window_size=63)
+            
+            status.update(label="Walk-Forward Optimization Complete!", state="complete", expanded=False)
+            
+        equity_curve = wfo_results['equity_curve']
+        kupiec = wfo_results['kupiec_results']
+        
+        # Calculate Equal Weight Benchmark for the Walk-Forward period
+        even_split = 1.0 / len(tickers)
+        benchmark_weights = np.array([even_split] * len(tickers))
+        
+        # The first date in equity_curve is the start date (cash), actual returns start on index 1
+        wfo_dates = equity_curve.index[1:]
+        raw_test_returns = wfo_engine.daily_returns.loc[wfo_dates]
+        
+        benchmark_daily_returns = np.dot(raw_test_returns, benchmark_weights)
+        benchmark_cumulative = investment * np.cumprod(1 + benchmark_daily_returns)
+        # Prepend the initial investment to match the equity curve's length
+        benchmark_cumulative = np.insert(benchmark_cumulative, 0, investment)
+        
+        st.subheader("Rolling Out-of-Sample Equity Curve")
+        fig3 = go.Figure()
+        fig3.add_trace(go.Scatter(x=equity_curve.index, y=equity_curve['Portfolio_Value'], mode='lines', name='WFO Strategy', line=dict(color='royalblue', width=2)))
+        fig3.add_trace(go.Scatter(x=equity_curve.index, y=benchmark_cumulative, mode='lines', name=f'Equal Weight Benchmark ({even_split:.1%})', line=dict(color='gray', width=2, dash='dash')))
+        fig3.update_layout(yaxis_title='Portfolio Value ($)', hovermode="x unified", template="plotly_dark", margin=dict(l=0, r=0, t=30, b=0))
+        st.plotly_chart(fig3, use_container_width=True)
+        
+        st.divider()
+        st.subheader("VaR Calibration & Risk (Kupiec POF Test)")
+        
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Total Walk-Forward Periods", f"{kupiec['total_periods']} Days")
+        k2.metric("Expected Breach Rate", f"{kupiec['expected_rate']:.1%}")
+        
+        obs_rate = kupiec['observed_rate']
+        exp_rate = kupiec['expected_rate']
+        delta_val = f"{(obs_rate - exp_rate):.2%} vs Expected"
+        k3.metric("Observed Breach Rate", f"{obs_rate:.1%}", delta=delta_val, delta_color="inverse")
+        
+        k4.metric("Kupiec p-value", f"{kupiec['p_value']:.4f}")
+        
+        if kupiec['is_calibrated']:
+            st.success(f"✅ **Model Passed Calibration (Fails to reject H0).** The portfolio accurately predicts risk within a 95% confidence interval.")
+        else:
+            st.error(f"⚠️ **Model Failed Calibration!** The algorithm is severely underestimating out-of-sample downside risk.")
