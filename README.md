@@ -1,7 +1,6 @@
 # Quantitative Portfolio Engine & Risk Optimizer
 
-Firstly, An end-to-end algorithmic portfolio optimization engine built with Python, simulating historical market data to construct the mathematically optimal asset allocation based on the Markowitz Efficient Frontier. 
-And the Second part, running Monte Carlo Simulation on the test result from the optimization engine to simulate and get probability graph of portfolio amount after 30 days, mentioning VaR (Value at Risk) and the expected amount. 
+An advanced algorithmic portfolio optimization engine and risk suite built with Python. This application simulates historical market data to construct mathematically optimal asset allocations based on the Markowitz Efficient Frontier, and strictly validates out-of-sample performance through Walk-Forward Optimization (WFO) and the Kupiec Proportion of Failures (POF) test.
 
 ## The Mathematics & Methodology
 
@@ -36,6 +35,13 @@ Instead of predicting a single future price, the engine executes a stochastic Mo
 
 #### Downside Risk Projection
 * **Value at Risk (VaR):** By sorting the 10,000 simulated outcomes, the algorithm empirically isolates the 5th percentile. This produces a strict 95% confidence VaR threshold, answering exactly how much capital is at risk of loss in a severe macroeconomic drawdown over the next month.
+* **Conditional Value at Risk (CVaR):** Calculates the expected shortfall, representing the average loss in the worst 5% of scenarios.
+
+### 5. Walk-Forward Optimization (WFO)
+To prevent historical curve-fitting, this engine implements rigorous **Walk-Forward Optimization** across a multi-year timeline. Rather than a single static train/test split, the algorithm utilizes a rolling **252-day** training window to dynamically re-optimize weights, immediately followed by a **63-day** out-of-sample testing window. This mathematically simulates a live, adaptive trading environment.
+
+### 6. Risk Model Validation (Kupiec POF Test)
+A risk model is useless if it cannot be trusted in live markets. The engine statistically validates its VaR predictions against **1,300+ trading days** of actual out-of-sample returns using the **Kupiec Proportion of Failures (POF) test**. By calculating the p-value of expected versus observed breaches, the system mathematically proves whether the risk model is accurately calibrated or dangerously underestimating downside risk.
 
 ## The Out-of-Sample Phenomenon: Optimization vs. Equal Weight
 A core feature of this engine is its strict separation of in-sample training and out-of-sample testing. Users will frequently observe the Optimized Strategy underperforming the Equal-Weight Benchmark during the forward-testing phase. This accurately reflects a well-documented phenomenon in quantitative finance:
@@ -45,10 +51,11 @@ A core feature of this engine is its strict separation of in-sample training and
 3. **Overfitting Detection:** By displaying this performance gap, the engine successfully identifies and visualizes algorithmic overfitting, proving that historical mean-variance dominance does not guarantee future outperformance.
 
 ## Features
-* **Modern Portfolio Theory (MPT):** Calculates the optimal Sharpe Ratio via 5,000+ simulated weight allocations.
-* **Out-of-Sample Backtesting:** Eliminates look-ahead bias by splitting historical data into training (optimization) and testing (forward-validation) periods to accurately gauge real-world performance.
-* **Performance Analytics:** Compares optimized strategy returns against an equal-weight benchmark, calculating expected volatility vs. actual cash returns.
-* **Live Interactive Web App:** A fully dynamic Streamlit frontend allowing custom stock ticker inputs, investment sizing, and dynamic timeline adjustments.
+* **Modern Portfolio Theory (MPT):** Calculates optimal asset weights by executing **10,000+ Monte Carlo simulations** to maximize the Sharpe Ratio.
+* **Walk-Forward Backtesting (WFO):** Eliminates look-ahead bias via a rolling **252-day/63-day** train/test window architecture to simulate a live trading environment.
+* **Advanced Risk Suite:** Projects 30-day future returns using Multivariate Student's t-distributions, calculating **95% VaR and CVaR**.
+* **Statistical Validation:** Statistically proves the accuracy of the risk model over **1,300+ trading days** using the two-tailed **Kupiec POF Test**.
+* **Live Interactive Web App:** A full-stack, dynamic Streamlit dashboard utilizing Plotly for complex financial data visualization against a 1/N baseline benchmark.
 
 ##  Technology Stack
 * **Backend:** Python (OOP Architecture)

@@ -264,4 +264,18 @@ if st.sidebar.button("Run Quantitative Optimization"):
         if kupiec['is_calibrated']:
             st.success(f"✅ **Model Passed Calibration (Fails to reject H0).** The portfolio accurately predicts risk within a 95% confidence interval.")
         else:
-            st.error(f"⚠️ **Model Failed Calibration!** The algorithm is severely underestimating out-of-sample downside risk.")
+            if obs_rate > exp_rate:
+                st.error(f"⚠️ **Model Failed Calibration!** The algorithm is severely **underestimating** out-of-sample downside risk (too many breaches).")
+            else:
+                st.warning(f"⚠️ **Model Failed Calibration!** The algorithm is severely **overestimating** risk (too few breaches). It's too conservative.")
+
+        st.divider()
+        with st.expander("Understanding the Kupiec POF Test"):
+            st.markdown("""
+            ### What is the Kupiec POF Test?
+            The **Kupiec Proportion of Failures (POF) test** is a statistical way to check if our risk model is actually working in the real world. 
+            
+            * **The Goal:** When we set a **95% Value at Risk (VaR)**, we are predicting that the portfolio will only lose more than that amount on **5% of the days**.
+            * **The Reality Check:** The Kupiec test looks at how many days the portfolio *actually* lost more than the predicted VaR (called a "breach" or "exception").
+            * **The Result:** If we expect breaches on 5% of days, but we actually see them on 10% of days, the model failed (it was too optimistic). The Kupiec test gives us a mathematical p-value to determine if the number of breaches is acceptable or if the risk model is broken.
+            """)
